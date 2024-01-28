@@ -1,9 +1,15 @@
+using PricingCalculator.Domain;
+using PricingCalculator.Repositories;
+using PricingCalculator.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddApplication();
+builder.Services.AddRepositories();
 
 var app = builder.Build();
 
@@ -16,29 +22,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapGet("/service-a/{customerId:int}/{startDate:datetime}/{endDate:datetime}", (int customerId, DateTime startDate, DateTime endDate, IPricingService pricingService) => pricingService.GetServicePrice(customerId, Service.A, DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate)))
+    .WithName("GetServiceA")
+    .WithOpenApi();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.MapGet("/service-b/{customerId:int}/{startDate:datetime}/{endDate:datetime}", (int customerId, DateTime startDate, DateTime endDate, IPricingService pricingService) => pricingService.GetServicePrice(customerId, Service.B, DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate)))
+    .WithName("GetServiceB")
+    .WithOpenApi();
+
+app.MapGet("/service-c/{customerId:int}/{startDate:datetime}/{endDate:datetime}", (int customerId, DateTime startDate, DateTime endDate, IPricingService pricingService) => pricingService.GetServicePrice(customerId, Service.C, DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate)))
+    .WithName("GetServiceC")
+    .WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
